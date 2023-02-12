@@ -4,6 +4,7 @@ import time
 #from pytimedinput import timedInput
 import getpass
 import csv
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class Database:
 
@@ -13,15 +14,15 @@ class Database:
   def check_if_database_exists(self):
     if not os.path.exists(database_path):
         with open(database_path, "w", newline='') as database:
-            fieldnames = ["First name", "Last name", "username", "password", "budget"]
+            fieldnames = ["first_name", "last_name", "username", "password", "budget"]
             db = csv.DictWriter(database, fieldnames=fieldnames)
             db.writeheader()
 
   def db_post(self, first_name, last_name, username, password, budget=0):
     with open(database_path, 'a', newline='') as database:
-      fieldnames = ["First name", "Last name", "username", "password", "budget"]
+      fieldnames = ["first_name", "last_name", "username", "password", "budget"]
       db = csv.DictWriter(database, fieldnames=fieldnames)
-      db.writerow({"First name": first_name, "Last name": last_name, "username": username, "password": password, "budget": budget})
+      db.writerow({"first_name": first_name, "last_name": last_name, "username": username, "password": password, "budget": budget})
 
   def db_get(self, username, field_name):
     with open(database_path, newline='') as database:
@@ -35,7 +36,7 @@ class Database:
         db = csv.DictReader(database)
         for row in db:
             if row['username'] == username:
-                if row["password"] == password:
+                if check_password_hash(row["password"], password):
                   return True
         return False
   
@@ -48,7 +49,7 @@ class Database:
             row['budget'] = budget
         new_db.append(row)
     with open(database_path, "w", newline='') as database:
-        fieldnames = ["First name", "Last name", "username", "password", "budget"]
+        fieldnames = ["first_name", "last_name", "username", "password", "budget"]
         db = csv.DictWriter(database, fieldnames=fieldnames)
         db.writeheader()
         for row in new_db:
@@ -70,7 +71,7 @@ class Layers:
         password = getpass.getpass("\n Password: ")
         if database.db_check_login(username, password):
           print("\n" + self.center_message("Login successful!"))
-          print("\n" + self.center_message("Welcome back, " + database.db_get(username, "First name") + "!"))
+          print("\n" + self.center_message("Welcome back, " + database.db_get(username, "first_name") + "!"))
           time.sleep(2)
           break
         else:
@@ -88,17 +89,18 @@ class Layers:
       while not password == password1:
         print("\n" + self.center_message("The passwords you introduced do not match. Please retry!"))
         password1 = getpass.getpass("\n Retype password: ")
-      database.db_post(first_name, last_name, username, password)
+      pswd = generate_password_hash(password)
+      database.db_post(first_name, last_name, username, pswd)
       print("\n" + self.center_message("Sign up successful!"))
-      print("\n" + self.center_message("Welcome, " + database.db_get(username, "First name") + "!"))
+      print("\n" + self.center_message("Welcome, " + database.db_get(username, "first_name") + "!"))
       time.sleep(2)
 
   def player_page(self):
     os.system('cls')
     print("\n" + self.center_message("Blackjack V1.0") + "\n")
     print("\n" + self.center_message("--> Developed by Radu Felecan <--") + "\n")
-    print("\nFirst name: " + database.db_get(username, "First name"))
-    print("\nLast name: " + database.db_get(username, "Last name"))
+    print("\nFirst name: " + database.db_get(username, "first_name"))
+    print("\nLast name: " + database.db_get(username, "last_name"))
     print("\nUsername: " + database.db_get(username, "username"))
     print("\nAvailable budget: " + str(database.db_get(username, "budget")) + "$")
     input(self.center_message("Press ENTER to continue..."))
@@ -248,7 +250,7 @@ display.loading_page(0.1)
 players = []
 
 dealer = Dealer()
-player = Player(database.db_get(username, "First name"), int(database.db_get(username, "budget")))
+player = Player(database.db_get(username, "first_name"), int(database.db_get(username, "budget")))
 
 players.append(player)
 players.append(dealer)
