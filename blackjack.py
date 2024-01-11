@@ -18,7 +18,7 @@ class Database:
             db = csv.DictWriter(database, fieldnames=fieldnames)
             db.writeheader()
 
-  def db_post(self, first_name, last_name, username, password, budget=0):
+  def db_post(self, first_name, last_name, username, password, budget=50):
     with open(database_path, 'a', newline='') as database:
       fieldnames = ["first_name", "last_name", "username", "password", "budget"]
       db = csv.DictWriter(database, fieldnames=fieldnames)
